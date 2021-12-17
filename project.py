@@ -146,22 +146,17 @@ def main():
 
     
     attribute_names = X.columns
-    class_names = ['fair', 'good']
+    class_names = ['insufficient', 'suffienct']
     X = X.values.tolist() # make X into a list(needed for creating a decision tree)
     X = np.asarray(X)
     
     # crossValidation(X,y)
-    dtc = tree.DecisionTreeClassifier(max_depth=17)
+    dtc = tree.DecisionTreeClassifier(max_depth=17, min_samples_split=10)
     dtc = dtc.fit(X, y)
-    plt.figure(figsize=(200,140), dpi=130)
-    # plt.figure(figsize=(10,5), dpi=80)
+    plt.figure(figsize=(150,80), dpi=60)
 
     tree.plot_tree(dtc, feature_names = attribute_names, class_names = class_names, filled =True)
-    plt.savefig("decisiontreeNew.png")
-
-
-    
-
+    plt.savefig("decisiontreeNew.pdf")
 
 if __name__ == '__main__':
     main()
