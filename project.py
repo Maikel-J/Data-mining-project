@@ -8,6 +8,7 @@ from sklearn import tree
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
 # import seaborn as sns
 # sns.set_style('whitegrid')
 # import statsmodels.api as sm
@@ -29,83 +30,92 @@ def prepareForDecisionTree(X : DataFrame):
     X['internet'] = [0 if i == 'no' else 1 for i in X['internet']] # no = 0, yes = 1
     X['romantic'] = [0 if i == 'no' else 1 for i in X['romantic']] # no = 0, yes = 1
 
-    list = []
-    for i in X['motherJob'] : # other = 0, at_home = 1, services = 2, health = 3, teacher = 4
-        if i == 'at_home':
-            list.append(1)
-        elif i == 'services':
-            list.append(2)
-        elif i == 'health':
-            list.append(3)
-        elif i == 'teacher':
-            list.append(4)
-        else:
-            list.append(0)
-    X['motherJob'] = list
+    encoder = OneHotEncoder()
+    X = pd.get_dummies(X,columns=['motherJob','fatherJob','reason','guardian'])
+    
+    # list = []
+    # for i in X['motherJob'] : # other = 0, at_home = 1, services = 2, health = 3, teacher = 4
+    #     if i == 'at_home':
+    #         list.append(1)
+    #     elif i == 'services':
+    #         list.append(2)
+    #     elif i == 'health':
+    #         list.append(3)
+    #     elif i == 'teacher':
+    #         list.append(4)
+    #     else:
+    #         list.append(0)
+    # X['motherJob'] = list
 
-    list = []
-    for i in X['fatherJob'] : # other = 0, at_home = 1, services = 2, health = 3, teacher = 4
-        if i == 'at_home':
-            list.append(1)
-        elif i == 'services':
-            list.append(2)
-        elif i == 'health':
-            list.append(3)
-        elif i == 'teacher':
-            list.append(4)
-        else:
-            list.append(0)
-    X['fatherJob'] = list
+    # list = []
+    # for i in X['fatherJob'] : # other = 0, at_home = 1, services = 2, health = 3, teacher = 4
+    #     if i == 'at_home':
+    #         list.append(1)
+    #     elif i == 'services':
+    #         list.append(2)
+    #     elif i == 'health':
+    #         list.append(3)
+    #     elif i == 'teacher':
+    #         list.append(4)
+    #     else:
+    #         list.append(0)
+    # X['fatherJob'] = list
 
-    list = []
-    for i in X['reason'] : # other = 0, course = 1, reputation = 2, home = 3
-        if i == 'course':
-            list.append(1)
-        elif i == 'reputation':
-            list.append(2)
-        elif i == 'home':
-            list.append(3)
-        else:
-            list.append(0)
-    X['reason'] = list
+    # list = []
+    # for i in X['reason'] : # other = 0, course = 1, reputation = 2, home = 3
+    #     if i == 'course':
+    #         list.append(1)
+    #     elif i == 'reputation':
+    #         list.append(2)
+    #     elif i == 'home':
+    #         list.append(3)
+    #     else:
+    #         list.append(0)
+    # X['reason'] = list
 
-    list = []
-    for i in X['guardian'] : # other = 0, father = 1, mother = 2
-        if i == 'father':
-            list.append(1)
-        elif i == 'mother':
-            list.append(2)
-        else:
-            list.append(0)
-    X['guardian'] = list
-
-    X = X.values.tolist() # make X into a list(needed for creating a decision tree)
-    X = np.asarray(X)
+    # list = []
+    # for i in X['guardian'] : # other = 0, father = 1, mother = 2
+    #     if i == 'father':
+    #         list.append(1)
+    #     elif i == 'mother':
+    #         list.append(2)
+    #     else:
+    #         list.append(0)
+    # X['guardian'] = list
     return X
 
 def crossValidation(X, y):
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=1234)
-    nr_of_splits = 10
-    train_error_list_stratified = np.zeros((nr_of_splits,20))
-    test_error_list_stratified = np.zeros((nr_of_splits,20))
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=1234)
+    nr_of_splits = 40
+    max_depth = 20
+    train_error_list_stratified = np.zeros((nr_of_splits,max_depth))
+    test_error_list_stratified = np.zeros((nr_of_splits,max_depth))
     for i, (train, test) in enumerate(StratifiedKFold(n_splits=nr_of_splits).split(X,y) ):
         X_train = X[train]
         y_train = y[train]
         X_test = X[test]
         y_test = y[test]
-        for j in range (2,20):
+        for j in range (2,max_depth):
+            train = []
+            test = []
             dtc =  tree.DecisionTreeClassifier(max_depth = j)
-            dtc = dtc.fit(X_train, y_train)
-            y_train_pred = dtc.predict(X_train)
-            y_test_pred = dtc.predict(X_test)
-            train_error = 1 - accuracy_score(y_train, y_train_pred)
-            train_error_list_stratified[i, j-2] = train_error
-            test_error = 1 - accuracy_score(y_test, y_test_pred)
-            test_error_list_stratified[i, j-2] = test_error 
+            for k in range(10):
+                dtc = dtc.fit(X_train, y_train)
+                y_train_pred = dtc.predict(X_train)
+                y_test_pred = dtc.predict(X_test)
+                train_error = 1 - accuracy_score(y_train, y_train_pred)
+                test_error = 1 - accuracy_score(y_test, y_test_pred)
+                train.append(train_error)
+                test.append(test_error)
+            train_error_list_stratified[i, j] = np.average(train)
+            test_error_list_stratified[i, j] = np.average(test_error) 
+
         
     plt.title('Stratified classification error, train vs test')
     plt.plot(train_error_list_stratified.mean(0), label = "train")
     plt.plot(test_error_list_stratified.mean(0),label = "test")
+    plt.xticks(np.arange(0,max_depth,2))
+    plt.xlim([3,max_depth])
     plt.ylabel('Classification error')
     plt.xlabel('Depth')
     plt.legend()
@@ -113,7 +123,7 @@ def crossValidation(X, y):
     
 
 def main():
-    mat = pd.read_csv("Dataset/student-mat.csv", sep=';') # load dataset of the math classes 
+    mat = pd.read_csv("Dataset/student-combined.csv", sep=';') # load dataset of the math classes 
 
     mat.columns = ['school','sex','age','address','familySize','parentsStatus','motherEducation','fatherEducation',
             'motherJob','fatherJob','reason','guardian','commuteTime','studyTime','failures','schoolSupport',
@@ -121,9 +131,8 @@ def main():
             'freeTime','goOutFriends','workdayAlc','weekendAlc','health','absences','1stPeriod','2ndPeriod','final']
 
     mat['finalGrade'] = 'None'
-    mat.loc[(mat.final >= 15) & (mat.final <= 20), 'finalGrade'] = 2
-    mat.loc[(mat.final >= 10) & (mat.final <= 14), 'finalGrade'] = 1
-    mat.loc[(mat.final >= 0) & (mat.final <= 9), 'finalGrade'] = 0
+    mat.loc[(mat.final >= 13) & (mat.final <= 20), 'finalGrade'] = 1
+    mat.loc[(mat.final >= 0) & (mat.final <= 12), 'finalGrade'] = 0
 
     X = mat.copy(deep=True) # coping mat without changing the original when X is changed
 
@@ -134,17 +143,21 @@ def main():
 
     X = prepareForDecisionTree(X)
     y = np.asarray(y)
-    attribute_names = mat.columns
-    class_names = ['poor', 'fair', 'good']
-    
-    crossValidation(X,y)
-    # dtc = tree.DecisionTreeClassifier(min_samples_split=2)
-    # dtc = dtc.fit(X, y)
-    # plt.figure(figsize=(150,80), dpi=80)
-    # # plt.figure(figsize=(10,5), dpi=80)
 
-    # tree.plot_tree(dtc, feature_names = attribute_names, class_names = class_names, filled =True)
-    # plt.savefig("decisiontree.png")
+    
+    attribute_names = X.columns
+    class_names = ['fair', 'good']
+    X = X.values.tolist() # make X into a list(needed for creating a decision tree)
+    X = np.asarray(X)
+    
+    # crossValidation(X,y)
+    dtc = tree.DecisionTreeClassifier(max_depth=17)
+    dtc = dtc.fit(X, y)
+    plt.figure(figsize=(200,140), dpi=130)
+    # plt.figure(figsize=(10,5), dpi=80)
+
+    tree.plot_tree(dtc, feature_names = attribute_names, class_names = class_names, filled =True)
+    plt.savefig("decisiontreeNew.png")
 
 
     
