@@ -9,9 +9,6 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
-# import seaborn as sns
-# sns.set_style('whitegrid')
-# import statsmodels.api as sm
 
 # https://colab.research.google.com/github/meizmyang/Student-Performance-Classification-Analysis/blob/master/Student%20Performance%20Analysis%20and%20Classification.ipynb#scrollTo=IdD7SgZoHjd9
 
@@ -30,58 +27,7 @@ def prepareForDecisionTree(X : DataFrame):
     X['internet'] = [0 if i == 'no' else 1 for i in X['internet']] # no = 0, yes = 1
     X['romantic'] = [0 if i == 'no' else 1 for i in X['romantic']] # no = 0, yes = 1
 
-    encoder = OneHotEncoder()
     X = pd.get_dummies(X,columns=['motherJob','fatherJob','reason','guardian'])
-    
-    # list = []
-    # for i in X['motherJob'] : # other = 0, at_home = 1, services = 2, health = 3, teacher = 4
-    #     if i == 'at_home':
-    #         list.append(1)
-    #     elif i == 'services':
-    #         list.append(2)
-    #     elif i == 'health':
-    #         list.append(3)
-    #     elif i == 'teacher':
-    #         list.append(4)
-    #     else:
-    #         list.append(0)
-    # X['motherJob'] = list
-
-    # list = []
-    # for i in X['fatherJob'] : # other = 0, at_home = 1, services = 2, health = 3, teacher = 4
-    #     if i == 'at_home':
-    #         list.append(1)
-    #     elif i == 'services':
-    #         list.append(2)
-    #     elif i == 'health':
-    #         list.append(3)
-    #     elif i == 'teacher':
-    #         list.append(4)
-    #     else:
-    #         list.append(0)
-    # X['fatherJob'] = list
-
-    # list = []
-    # for i in X['reason'] : # other = 0, course = 1, reputation = 2, home = 3
-    #     if i == 'course':
-    #         list.append(1)
-    #     elif i == 'reputation':
-    #         list.append(2)
-    #     elif i == 'home':
-    #         list.append(3)
-    #     else:
-    #         list.append(0)
-    # X['reason'] = list
-
-    # list = []
-    # for i in X['guardian'] : # other = 0, father = 1, mother = 2
-    #     if i == 'father':
-    #         list.append(1)
-    #     elif i == 'mother':
-    #         list.append(2)
-    #     else:
-    #         list.append(0)
-    # X['guardian'] = list
     return X
 
 def crossValidation(X, y):
@@ -150,7 +96,7 @@ def main():
     X = X.values.tolist() # make X into a list(needed for creating a decision tree)
     X = np.asarray(X)
     
-    # crossValidation(X,y)
+    crossValidation(X,y)
     dtc = tree.DecisionTreeClassifier(max_depth=17, min_samples_split=10)
     dtc = dtc.fit(X, y)
     plt.figure(figsize=(150,80), dpi=60)
