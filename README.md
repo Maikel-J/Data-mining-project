@@ -1,3 +1,0 @@
-# Data-mining-project
-
-hallo
